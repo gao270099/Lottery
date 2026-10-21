@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ "main", "master" ]
-  workflow_dispatch: # 支持手动点击按钮随时编译
+  workflow_dispatch:
 
 jobs:
   build-android:
@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 安装系统编译依赖
+      - name: 安装系统编译依赖与工具
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -33,9 +33,10 @@ jobs:
           pip install --upgrade "cython<3.0"
           pip install --upgrade buildozer virtualenv
 
-      - name: 执行 APK 编译打包
+      - name: 执行 APK 编译打包（自动同意许可协议）
         run: |
-          buildozer android debug
+          # 核心修复：通过 yes 自动对所有交互式协议输入 y
+          yes | buildozer android debug
 
       - name: 上传 APK 文件
         uses: actions/upload-artifact@v4
