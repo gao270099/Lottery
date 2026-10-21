@@ -7,18 +7,24 @@ on:
 
 jobs:
   build-android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: 检出仓库代码
         uses: actions/checkout@v4
 
-      - name: 配置 Python 环境
+      - name: 设置 Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: 安装系统编译依赖与工具
+      - name: 设置 Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 安装系统底层编译依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -27,18 +33,17 @@ jobs:
             libavformat-dev libavcodec-dev zlib1g-dev autoconf automake \
             libtool pkg-config cmake ninja-build zip unzip
 
-      - name: 安装打包工具 Buildozer
+      - name: 安装 Buildozer 及打包工具
         run: |
           pip install --upgrade pip
           pip install --upgrade "cython<3.0"
           pip install --upgrade buildozer virtualenv
 
-      - name: 执行 APK 编译打包（自动同意许可协议）
+      - name: 执行 APK 编译打包
         run: |
-          # 核心修复：通过 yes 自动对所有交互式协议输入 y
-          yes | buildozer android debug
+          buildozer -v android debug
 
-      - name: 上传 APK 文件
+      - name: 上传编译出的 APK 文件
         uses: actions/upload-artifact@v4
         with:
           name: Lottery-Release-APK
