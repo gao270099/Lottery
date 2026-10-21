@@ -18,12 +18,6 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 设置 Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
       - name: 安装系统底层编译依赖
         run: |
           sudo apt-get update
@@ -33,6 +27,13 @@ jobs:
             libavformat-dev libavcodec-dev zlib1g-dev autoconf automake \
             libtool pkg-config cmake ninja-build zip unzip
 
+      - name: 清理 Runner 系统预装的冲突环境变量
+        run: |
+          # 清除可能与 Buildozer 自建 SDK/NDK 产生冲突的系统预置路径
+          echo "ANDROID_NDK_HOME=" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
+          echo "ANDROID_NDK_LATEST_HOME=" >> $GITHUB_ENV
+
       - name: 安装 Buildozer 及打包工具
         run: |
           pip install --upgrade pip
@@ -41,6 +42,7 @@ jobs:
 
       - name: 执行 APK 编译打包
         run: |
+          # 加上 -v 输出详细错误堆栈，同时不再使用易损坏管道的 yes
           buildozer -v android debug
 
       - name: 上传编译出的 APK 文件
