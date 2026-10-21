@@ -1,0 +1,45 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # 支持手动点击按钮随时编译
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出仓库代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 安装系统编译依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential git ffmpeg libsdl2-dev libsdl2-image-dev \
+            libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
+            libavformat-dev libavcodec-dev zlib1g-dev autoconf automake \
+            libtool pkg-config cmake ninja-build zip unzip
+
+      - name: 安装打包工具 Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade "cython<3.0"
+          pip install --upgrade buildozer virtualenv
+
+      - name: 执行 APK 编译打包
+        run: |
+          buildozer android debug
+
+      - name: 上传 APK 文件
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lottery-Release-APK
+          path: bin/*.apk
+          retention-days: 7
